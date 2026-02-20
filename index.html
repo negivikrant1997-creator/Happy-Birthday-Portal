@@ -109,13 +109,13 @@
     }
 
     // 3) Visible centered ring
-    ctx.lineWidth = 6; ctx.strokeStyle='rgba(0,255,0,0.65)';
+    ctx.lineWidth = 7; ctx.strokeStyle='rgba(0,255,0,0.65)';
     ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2); ctx.stroke();
 
     // 4) Name below
     const name=(nameInput.value||'').trim();
     if (name){
-      ctx.font=`700 ${NAME_FONT_PX}px Arial, sans-serif`;
+      ctx.font=`800 ${NAME_FONT_PX}px Arial, sans-serif`;
       ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.shadowColor='rgba(0,0,0,0.55)'; ctx.shadowBlur=10;
       ctx.fillText(name, W/2, NAME_Y); ctx.shadowBlur=0;
@@ -160,4 +160,5 @@
 })();
 </script>
 </body>
+
 </html>
