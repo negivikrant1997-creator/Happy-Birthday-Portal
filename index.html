@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Poster – Camera or Gallery (Root PNGs)</title>
+
 <style>
   body { margin:0; font-family:system-ui, Arial; background:#120028; color:#fff; }
   .bar { display:flex; gap:10px; padding:12px; flex-wrap:wrap; align-items:center; justify-content:center; }
@@ -12,65 +13,73 @@
   .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
   .thumb input { position:absolute; inset:0; opacity:0; cursor:pointer; }
   .thumb.active { border-color:#ffa500; box-shadow:0 0 0 3px rgba(255,165,0,0.35); }
+
   input[type="text"], button {
-    font-size:16px; padding:10px; border:none; border-radius:10px; background:#2f085a; color:#fff;
+    font-size:16px; padding:10px; border:none; border-radius:10px;
+    background:#2f085a; color:#fff;
   }
+
   .btn { background:#ffa500; color:#230044; font-weight:700; }
+
   .stage { display:grid; place-items:center; padding:10px; }
+
   canvas {
     width:min(94vw,420px);
     height:calc(min(94vw,420px) * 1920 / 1080);
-    border-radius:14px; background:#0d001a;
+    border-radius:14px;
+    background:#0d001a;
     box-shadow:0 8px 24px rgba(0,0,0,0.35);
   }
 </style>
 </head>
+
 <body>
-  <div class="bar">
-    <!-- Two explicit options for phones -->
-    <button class="btn" id="btnCamera">Take Photo</button>
-    <button class="btn" id="btnGallery">Upload From Gallery</button>
-    <input id="inputCamera" type="file" accept="image/*" capture="environment" style="display:none">
-    <input id="inputGallery" type="file" accept="image/*" style="display:none">
-    <label>Name <input id="nameInput" type="text" placeholder="Type name (optional)"></label>
-    <button class="btn" id="saveBtn">Download</button>
-  </div>
 
-  <!-- Posters located in the SAME folder as this HTML -->
-  <div class="thumbs" id="thumbs">
-    <label class="thumb active" data-src="3.png">
-      <img src="3.png" alt="3">
-      <input type="radio" name="poster" value="3.png" checked>
-    </label>
-    <label class="thumb" data-src="5.png">
-      <img src="5.png" alt="5">
-      <input type="radio" name="poster" value="5.png">
-    </label>
-    <label class="thumb" data-src="7.png">
-      <img src="7.png" alt="7">
-      <input type="radio" name="poster" value="7.png">
-    </label>
-    <label class="thumb" data-src="8.png">
-      <img src="8.png" alt="8">
-      <input type="radio" name="poster" value="8.png">
-    </label>  
-  </div>
+<div class="bar">
+  <button class="btn" id="btnCamera">Take Photo</button>
+  <button class="btn" id="btnGallery">Upload From Gallery</button>
+  <input id="inputCamera" type="file" accept="image/*" capture="environment" style="display:none">
+  <input id="inputGallery" type="file" accept="image/*" style="display:none">
+  <label>Name <input id="nameInput" type="text" placeholder="Type name (optional)"></label>
+  <button class="btn" id="saveBtn">Download</button>
+</div>
 
-  <div class="stage">
-    <canvas id="cv" width="1080" height="1920"></canvas>
-  </div>
+<div class="thumbs" id="thumbs">
+  <label class="thumb active" data-src="3.png">
+    <img src="3.png" alt="3">
+    <input type="radio" name="poster" value="3.png" checked>
+  </label>
+  <label class="thumb" data-src="5.png">
+    <img src="5.png" alt="5">
+    <input type="radio" name="poster" value="5.png">
+  </label>
+  <label class="thumb" data-src="7.png">
+    <img src="7.png" alt="7">
+    <input type="radio" name="poster" value="7.png">
+  </label>
+  <label class="thumb" data-src="8.png">
+    <img src="8.png" alt="8">
+    <input type="radio" name="poster" value="8.png">
+  </label>
+</div>
+
+<div class="stage">
+  <canvas id="cv" width="1080" height="1920"></canvas>
+</div>
 
 <script>
 (() => {
-  // Exact 1080×1920 output
+
   const W=1080, H=1920;
 
-  // Smaller circle and name below (kept same as your current setup)
-  const CX=540, CY=960, R=214;
-  const NAME_Y = CY + R + 90;
-  const NAME_FONT_PX = 60;
+  const CX=540, CY=960, R=214;  // R now represents half square size
 
-  const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  const NAME_Y = CY + R + 90;
+  const NAME_FONT_PX = 80;   // 🔥 Bigger font
+
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+
   const thumbs = document.getElementById('thumbs');
   const btnCamera = document.getElementById('btnCamera');
   const btnGallery = document.getElementById('btnGallery');
@@ -79,82 +88,123 @@
   const nameInput  = document.getElementById('nameInput');
   const saveBtn    = document.getElementById('saveBtn');
 
-  let posterSrc = '3.png', posterImg=null, photoImg=null;
+  let posterSrc = '3.png';
+  let posterImg=null;
+  let photoImg=null;
 
   function loadImage(src){
-    return new Promise((res, rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej('fail '+src); i.src=src; });
+    return new Promise((res, rej)=>{
+      const i=new Image();
+      i.onload=()=>res(i);
+      i.onerror=()=>rej('fail '+src);
+      i.src=src;
+    });
   }
 
   async function setPoster(src){
     posterSrc = src;
-    try { posterImg = await loadImage(src); } catch { posterImg = null; }
+    try { posterImg = await loadImage(src); }
+    catch { posterImg = null; }
     draw();
   }
 
   function autoNameFromFile(file){
     if (!file) return '';
-    const base = (file.name||'').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
-    return base.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1):'').join(' ');
+    const base = (file.name||'')
+      .replace(/\.[^.]+$/,'')
+      .replace(/[_-]+/g,' ')
+      .trim();
+    return base.split(' ')
+      .map(w=>w?w[0].toUpperCase()+w.slice(1):'')
+      .join(' ');
   }
 
   function draw(){
-    // 1) Poster drawn to exact 1080×1920
-    if (posterImg) ctx.drawImage(posterImg, 0, 0, W, H);
-    else { ctx.fillStyle='#2b0063'; ctx.fillRect(0,0,W,H); }
 
-    // 2) Photo auto-fit inside centered circle
+    // Poster
+    if (posterImg) ctx.drawImage(posterImg, 0, 0, W, H);
+    else {
+      ctx.fillStyle='#2b0063';
+      ctx.fillRect(0,0,W,H);
+    }
+
+    // 🔥 SQUARE PHOTO AREA
     if (photoImg){
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(CX - R, CY - R, 2 * R, 2 * R);
-    ctx.closePath();
-    ctx.clip();
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(CX - R, CY - R, 2 * R, 2 * R);
+      ctx.closePath();
+      ctx.clip();
+
       const bw=2*R, bh=2*R;
-      const a=photoImg.width/photoImg.height, ab=bw/bh;
-      let dw, dh; if (a>ab){ dh=bh; dw=dh*a; } else { dw=bw; dh=dw/a; }
+      const a=photoImg.width/photoImg.height;
+      const ab=bw/bh;
+
+      let dw, dh;
+      if (a>ab){ dh=bh; dw=dh*a; }
+      else { dw=bw; dh=dw/a; }
+
       ctx.drawImage(photoImg, CX-dw/2, CY-dh/2, dw, dh);
       ctx.restore();
     }
 
-    // 3) Visible centered ring
-   ctx.lineWidth = 7;
-   ctx.strokeStyle = '#ffc0cb'; // baby pink
-   ctx.strokeRect(CX - R, CY - R, 2 * R, 2 * R);
-    ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2); ctx.stroke();
+    // 🔥 BABY PINK SQUARE BORDER
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#ffc0cb';
+    ctx.strokeRect(CX - R, CY - R, 2 * R, 2 * R);
 
-    // 4) Name below
+    // 🔥 NAME BELOW
     const name=(nameInput.value||'').trim();
     if (name){
       ctx.font=`800 ${NAME_FONT_PX}px Arial, sans-serif`;
-      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.shadowColor='rgba(0,0,0,0.55)'; ctx.shadowBlur=10;
-      ctx.fillText(name, W/2, NAME_Y); ctx.shadowBlur=0;
+      ctx.fillStyle='#fff';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.shadowColor='rgba(0,0,0,0.55)';
+      ctx.shadowBlur=10;
+      ctx.fillText(name, W/2, NAME_Y);
+      ctx.shadowBlur=0;
     }
   }
 
-  // Poster selection
   thumbs.addEventListener('change', e=>{
     const input=e.target;
     if (input && input.name==='poster'){
-      [...thumbs.querySelectorAll('.thumb')].forEach(t=>t.classList.remove('active'));
+      [...thumbs.querySelectorAll('.thumb')]
+        .forEach(t=>t.classList.remove('active'));
       input.closest('.thumb').classList.add('active');
       setPoster(input.value);
     }
   });
 
-  // Two distinct flows: camera vs gallery (works better on mobile UIs)
   btnCamera.addEventListener('click', ()=> inputCamera.click());
   btnGallery.addEventListener('click', ()=> inputGallery.click());
 
   function handleFileInput(file){
     if(!file){ photoImg=null; draw(); return; }
+
     const r=new FileReader();
-    r.onload=async e=>{ try{ photoImg=await loadImage(e.target.result);}catch{photoImg=null;} if(!nameInput.value) nameInput.value=autoNameFromFile(file); draw(); };
+    r.onload=async e=>{
+      try{ photoImg=await loadImage(e.target.result); }
+      catch{ photoImg=null; }
+
+      if(!nameInput.value)
+        nameInput.value=autoNameFromFile(file);
+
+      draw();
+    };
+
     r.readAsDataURL(file);
   }
 
-  inputCamera.addEventListener('change', ()=> handleFileInput(inputCamera.files[0]));
-  inputGallery.addEventListener('change', ()=> handleFileInput(inputGallery.files[0]));
+  inputCamera.addEventListener('change',
+    ()=> handleFileInput(inputCamera.files[0])
+  );
+
+  inputGallery.addEventListener('change',
+    ()=> handleFileInput(inputGallery.files[0])
+  );
+
   nameInput.addEventListener('input', draw);
 
   saveBtn.addEventListener('click', ()=>{
@@ -165,12 +215,10 @@
     a.click();
   });
 
-  // Init
   setPoster(posterSrc);
+
 })();
 </script>
+
 </body>
-
 </html>
-
-
