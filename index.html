@@ -68,7 +68,7 @@
   // Smaller circle and name below (kept same as your current setup)
   const CX=540, CY=960, R=214;
   const NAME_Y = CY + R + 90;
-  const NAME_FONT_PX = 48;
+  const NAME_FONT_PX = 60;
 
   const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
   const thumbs = document.getElementById('thumbs');
@@ -104,7 +104,7 @@
 
     // 2) Photo auto-fit inside centered circle
     if (photoImg){
-      ctx.save(); ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2); ctx.closePath(); ctx.clip();
+      ctx.save();ctx.beginPath();ctx.rect(CX - R, CY - R, 2 * R, 2 * R);ctx.closePath();ctx.clip();
       const bw=2*R, bh=2*R;
       const a=photoImg.width/photoImg.height, ab=bw/bh;
       let dw, dh; if (a>ab){ dh=bh; dw=dh*a; } else { dw=bw; dh=dw/a; }
@@ -113,7 +113,9 @@
     }
 
     // 3) Visible centered ring
-    ctx.lineWidth = 7; ctx.strokeStyle='rgba(0,255,0,0.65)';
+   ctx.lineWidth = 7;
+   ctx.strokeStyle = '#ffc0cb'; // baby pink
+   ctx.strokeRect(CX - R, CY - R, 2 * R, 2 * R);
     ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2); ctx.stroke();
 
     // 4) Name below
@@ -166,3 +168,4 @@
 </body>
 
 </html>
+
