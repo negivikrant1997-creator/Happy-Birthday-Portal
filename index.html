@@ -104,7 +104,11 @@
 
     // 2) Photo auto-fit inside centered circle
     if (photoImg){
-      ctx.save();ctx.beginPath();ctx.rect(CX - R, CY - R, 2 * R, 2 * R);ctx.closePath();ctx.clip();
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(CX - R, CY - R, 2 * R, 2 * R);
+    ctx.closePath();
+    ctx.clip();
       const bw=2*R, bh=2*R;
       const a=photoImg.width/photoImg.height, ab=bw/bh;
       let dw, dh; if (a>ab){ dh=bh; dw=dh*a; } else { dw=bw; dh=dw/a; }
@@ -168,4 +172,5 @@
 </body>
 
 </html>
+
 
