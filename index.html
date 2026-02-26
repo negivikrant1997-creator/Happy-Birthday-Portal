@@ -72,10 +72,11 @@
 
   const W=1080, H=1920;
 
-  const CX=540, CY=960, R=214;  // R now represents half square size
+  // 🔥 Increased square size
+  const CX=540, CY=960, R=260;
 
   const NAME_Y = CY + R + 90;
-  const NAME_FONT_PX = 70;   // 🔥 Bigger font
+  const NAME_FONT_PX = 70;   // 🔥 Font limited to 70px
 
   const cv = document.getElementById('cv');
   const ctx = cv.getContext('2d');
@@ -121,14 +122,13 @@
 
   function draw(){
 
-    // Poster
     if (posterImg) ctx.drawImage(posterImg, 0, 0, W, H);
     else {
       ctx.fillStyle='#2b0063';
       ctx.fillRect(0,0,W,H);
     }
 
-    // 🔥 SQUARE PHOTO AREA
+    // 🔥 Square Photo Area
     if (photoImg){
       ctx.save();
       ctx.beginPath();
@@ -148,12 +148,12 @@
       ctx.restore();
     }
 
-    // 🔥 BABY PINK SQUARE BORDER
+    // 🔥 Mauve Border
     ctx.lineWidth = 8;
-    ctx.strokeStyle = '#ffc0cb';
+    ctx.strokeStyle = '#E0B0FF';
     ctx.strokeRect(CX - R, CY - R, 2 * R, 2 * R);
 
-    // 🔥 NAME BELOW
+    // 🔥 Name Below
     const name=(nameInput.value||'').trim();
     if (name){
       ctx.font=`800 ${NAME_FONT_PX}px Arial, sans-serif`;
@@ -222,4 +222,3 @@
 
 </body>
 </html>
-
